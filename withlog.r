@@ -18,7 +18,8 @@ my_loan_data <- loan_data %>%
   select(gvkey, facilityid, contract_year,
          total_esg_score, allindrawn, numcov1,
          total_assets, profitability, leverage, industry,
-         facilityamt, num_lenders)
+         facilityamt, num_lenders,
+         environment_score, social_score, governance_score)
 
 view(my_loan_data)
 
@@ -54,7 +55,7 @@ sort(unique(loan_data_clean$contract_year))
 industry_data <- read_csv("Industry.csv") %>%
   select(gvkey, sic2, category)
 
-view(Industry)
+view(industry_data)
 
 loan_data_clean_with_industry <- loan_data_clean %>%
   inner_join(industry_data, by = "gvkey")
@@ -122,6 +123,18 @@ loan_data_clean_non %>%
   geom_histogram()
 
 loan_data_clean_non %>%
+  ggplot(aes(environment_score)) +
+  geom_histogram()
+
+loan_data_clean_non %>%
+  ggplot(aes(social_score)) +
+  geom_histogram()
+
+loan_data_clean_non %>%
+  ggplot(aes(governance_score)) +
+  geom_histogram()
+
+loan_data_clean_non %>%
   ggplot(aes(facilityamt)) +
   geom_histogram()
 
@@ -139,6 +152,7 @@ loan_data_non <- loan_data_clean_non %>%
     pmin(pmax(.x, lower_bound), upper_bound)
   }, .names = "{col}_w")) %>%
   mutate(across(c(total_esg_score,
+                  environment_score, social_score, governance_score,
                   allindrawn, total_assets, facilityamt, num_lenders),
                 ~log(1 + .x), .names = "log_{col}"))
 
@@ -162,6 +176,18 @@ loan_data_non %>%
 
 loan_data_non %>%
   ggplot(aes(log_total_esg_score)) +
+  geom_histogram()
+
+loan_data_non %>%
+  ggplot(aes(log_environment_score)) +
+  geom_histogram()
+
+loan_data_non %>%
+  ggplot(aes(log_social_score)) +
+  geom_histogram()
+
+loan_data_non %>%
+  ggplot(aes(log_governance_score)) +
   geom_histogram()
 
 loan_data_non %>%
@@ -217,9 +243,17 @@ datasummary(total_esg_score + log_total_esg_score + spread + log_spread +
 # correlation matrix
 ######################
 
-data_analysis <- as.data.frame(data_analysis) #convert to data frame
+data_analysis2 <- loan_data_non %>%
+  select(log_total_esg_score, log_spread,
+         numcov1,
+         log_size,
+         log_facilityamt,
+         log_num_lenders,
+         profitability_w, leverage_w)
 
-corr_matrix <- corx(data_analysis,
+data_analysis2 <- as.data.frame(data_analysis2) #convert to data frame
+
+corr_matrix <- corx(data_analysis2,
                     stars = c(0.1, 0.05, 0.01),
                     triangle = "lower",
                     caption = "Table 2 Correlation matrix")
@@ -254,18 +288,18 @@ modelsummary(list(est1, est2), stars = c("*" = .1, "**" = .05, "***" = .01),
 # Borrowers with high ESG scores experience less stringent loan covenants 
 # compared to borrowers with low ESG scores.
 
-est1 <- loan_data_non %>%
+est3 <- loan_data_non %>%
   feols(numcov1 ~ log_total_esg_score)
-est2 <- loan_data_non %>%
+est4 <- loan_data_non %>%
   feols(numcov1 ~ log_total_esg_score +
           log_facilityamt + log_num_lenders + profitability_w + leverage_w +
           log_size + industry)
 
-modelsummary(list(est1, est2), stars = c("*" = .1, "**" = .05, "***" = .01),
+modelsummary(list(est3, est4), stars = c("*" = .1, "**" = .05, "***" = .01),
              statistic = "p.value")
 
 
-modelsummary(list(est1, est2), stars = c("*" = .1, "**" = .05, "***" = .01),
+modelsummary(list(est3, est4), stars = c("*" = .1, "**" = .05, "***" = .01),
              statistic = "p.value", output = "Hypothesis2.docx")
 
 
@@ -274,3 +308,74 @@ modelsummary(list(est1, est2), stars = c("*" = .1, "**" = .05, "***" = .01),
 #########################
 
 # where does this come from? E or S or G?
+
+# Hypothesis 1
+# analysis for log_spread and environmental_score
+est5 <- loan_data_non %>%
+  feols(log_spread ~ log_)
+est6 <- loan_data_non %>%
+  feols(log_spread ~ environment_score +
+          profitability_w + leverage_w + log_size + industry)
+
+# analysis for log_spread and social_score
+
+est7 <- loan_data_non %>%
+  feols(log_spread ~ social_score)
+est8 <- loan_data_non %>%
+  feols(log_spread ~ social_score +
+          profitability_w + leverage_w + log_size + industry)
+
+# analysis for log_spread and governance_score
+
+est9 <- loan_data_non %>%
+  feols(log_spread ~ governance_score)
+est10 <- loan_data_non %>%
+  feols(log_spread ~ governance_score +
+          profitability_w + leverage_w + log_size + industry)
+
+modelsummary(list(est5, est6, est7, est8, est9, est10),
+             stars = c("*" = .1, "**" = .05, "***" = .01),
+             statistic = "p.value")
+
+
+modelsummary(list(est5, est6, est7, est8, est9, est10),
+             stars = c("*" = .1, "**" = .05, "***" = .01),
+             statistic = "p.value", output = "Additional_analysis1.docx")
+
+
+# Hypothesis2
+# analysis for log_spread and environmental_score
+est11 <- loan_data_non %>%
+  feols(numcov1 ~ environment_score)
+est12 <- loan_data_non %>%
+  feols(numcov1 ~ environment_score +
+          log_facilityamt + log_num_lenders + profitability_w + leverage_w +
+          log_size + industry)
+
+# analysis for log_spread and social_score
+
+est13 <- loan_data_non %>%
+  feols(numcov1 ~ social_score)
+est14 <- loan_data_non %>%
+  feols(numcov1 ~ social_score +
+          log_facilityamt + log_num_lenders + profitability_w + leverage_w +
+          log_size + industry)
+
+# analysis for log_spread and governance_score
+
+est15 <- loan_data_non %>%
+  feols(numcov1 ~ governance_score)
+est16 <- loan_data_non %>%
+  feols(numcov1 ~ governance_score +
+          log_facilityamt + log_num_lenders + profitability_w + leverage_w +
+          log_size + industry)
+
+modelsummary(list(est11, est12, est13, est14, est15, est16),
+             stars = c("*" = .1, "**" = .05, "***" = .01),
+             statistic = "p.value")
+
+
+modelsummary(list(est11, est12, est13, est14, est15, est16),
+             stars = c("*" = .1, "**" = .05, "***" = .01),
+             statistic = "p.value", output = "Additional_analysis2.docx")
+
