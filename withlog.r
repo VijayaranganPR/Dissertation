@@ -312,25 +312,25 @@ modelsummary(list(est3, est4), stars = c("*" = .1, "**" = .05, "***" = .01),
 # Hypothesis 1
 # analysis for log_spread and environmental_score
 est5 <- loan_data_non %>%
-  feols(log_spread ~ log_)
+  feols(log_spread ~ log_environment_score)
 est6 <- loan_data_non %>%
-  feols(log_spread ~ environment_score +
+  feols(log_spread ~ log_environment_score +
           profitability_w + leverage_w + log_size + industry)
 
 # analysis for log_spread and social_score
 
 est7 <- loan_data_non %>%
-  feols(log_spread ~ social_score)
+  feols(log_spread ~ log_social_score)
 est8 <- loan_data_non %>%
-  feols(log_spread ~ social_score +
+  feols(log_spread ~ log_social_score +
           profitability_w + leverage_w + log_size + industry)
 
 # analysis for log_spread and governance_score
 
 est9 <- loan_data_non %>%
-  feols(log_spread ~ governance_score)
+  feols(log_spread ~ log_governance_score)
 est10 <- loan_data_non %>%
-  feols(log_spread ~ governance_score +
+  feols(log_spread ~ log_governance_score +
           profitability_w + leverage_w + log_size + industry)
 
 modelsummary(list(est5, est6, est7, est8, est9, est10),
@@ -346,27 +346,27 @@ modelsummary(list(est5, est6, est7, est8, est9, est10),
 # Hypothesis2
 # analysis for log_spread and environmental_score
 est11 <- loan_data_non %>%
-  feols(numcov1 ~ environment_score)
+  feols(numcov1 ~ log_environment_score)
 est12 <- loan_data_non %>%
-  feols(numcov1 ~ environment_score +
+  feols(numcov1 ~ log_environment_score +
           log_facilityamt + log_num_lenders + profitability_w + leverage_w +
           log_size + industry)
 
 # analysis for log_spread and social_score
 
 est13 <- loan_data_non %>%
-  feols(numcov1 ~ social_score)
+  feols(numcov1 ~ log_social_score)
 est14 <- loan_data_non %>%
-  feols(numcov1 ~ social_score +
+  feols(numcov1 ~ log_social_score +
           log_facilityamt + log_num_lenders + profitability_w + leverage_w +
           log_size + industry)
 
 # analysis for log_spread and governance_score
 
 est15 <- loan_data_non %>%
-  feols(numcov1 ~ governance_score)
+  feols(numcov1 ~ log_governance_score)
 est16 <- loan_data_non %>%
-  feols(numcov1 ~ governance_score +
+  feols(numcov1 ~ log_governance_score +
           log_facilityamt + log_num_lenders + profitability_w + leverage_w +
           log_size + industry)
 
